@@ -26,3 +26,5 @@ jobs:
 
       - name: Build
         run: npm run dev & # Replace this with your build command/script
+        # Note the use of & to run the command in the background. This will allow the workflow to continue executing subsequent steps.
+ # If you only need to run the server temporarily for the purpose of testing or building assets, you can modify your build script to start the server in the background and then proceed with subsequent steps.
