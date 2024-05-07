@@ -25,4 +25,4 @@ jobs:
         run: npm install
 
       - name: Build
-        run: npm run dev # Replace this with your build command/script
+        run: npm run dev & # Replace this with your build command/script
