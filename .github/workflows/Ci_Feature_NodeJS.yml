@@ -81,5 +81,9 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
 
-      - name: Build Artifact
-        run: echo "Build artifact step"
+     # Upload the build artifact
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: my-app-build # Choose a name for your artifact
+      #     path: path/to/your/build/directory # Specify the directory containing your build artifacts
