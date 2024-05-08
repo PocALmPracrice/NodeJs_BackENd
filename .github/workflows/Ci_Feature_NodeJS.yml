@@ -52,7 +52,6 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-           sonar-scanner
            -Dsonar.organization=pocalmpracrice
            -Dsonar.projectKey=PocALmPracrice_NodeJs_BackENd
            -Dsonar.sources=.
