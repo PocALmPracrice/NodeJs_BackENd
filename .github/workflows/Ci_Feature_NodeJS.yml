@@ -68,7 +68,7 @@ jobs:
               "text": "Node Js backend project built successfully."
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
 
       - name: Send notification on Slack using Webhooks - Failure
         if: ${{ failure() }}
@@ -79,7 +79,7 @@ jobs:
               "text": "Node backend(server) build failed. Please check the build logs for details."
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
 
       - name: Build Artifact
         run: echo "Build artifact step"
