@@ -1,0 +1,87 @@
+name: CI_NodeJS_BackEnd
+
+on:
+  push:
+    branches:
+      - feature_branch
+
+jobs:
+  build:
+    name: CI for NodeJS
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.12.2'
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run dev & # Replace this with your build command/script
+        # Note the use of & to run the command in the background. This will allow the workflow to continue executing subsequent steps.
+ # If you only need to run the server temporarily for the purpose of testing or building assets, you can modify your build script to start the server in the background and then proceed with subsequent steps.
+
+      # - name: Cache dependencies
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/go/pkg/mod
+      #     key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-go-
+      # - name: Compile
+      #   run: go build -v .
+
+      #- name: Secret Scanning
+        # Integrate with your secret scanning tool
+        # For example, if using truffleHog
+        # run: trufflehog .
+
+      # - name: Unit Test
+      #   run: npm test -v ./...
+
+      # - name: Code Coverage
+      #   run: |
+          
+      # - name: Static Code Analysis
+      #   uses: sonarsource/sonarqube-scan-action@v2
+      #   with:
+      #     projectBaseDir: .
+      #     args: >
+      #       -Dsonar.organization=sonarintegration-1
+      #       -Dsonar.projectKey=sonarintegration-1_go-todo-project
+      #       -Dsonar.sources=./
+      #       -Dsonar.go.coverage.reportPaths=coverage.out
+      #       -Dsonar.host.url=https://sonarcloud.io
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      # - name: Send notification on Slack using Webhooks - Success
+      #   if: ${{ success() }}
+      #   uses: slackapi/slack-github-action@v1.24.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "Go project built successfully."
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      # - name: Send notification on Slack using Webhooks - Failure
+      #   if: ${{ failure() }}
+      #   uses: slackapi/slack-github-action@v1.24.0
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "Go build failed. Please check the build logs for details."
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Build Artifact
+        run: echo "Build artifact step"
