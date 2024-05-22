@@ -117,3 +117,4 @@ jobs:
           path: snyk-report.html
       - name: Fix vulnerabilities
         run: npx snyk wizard --fail-on patchable
+        
