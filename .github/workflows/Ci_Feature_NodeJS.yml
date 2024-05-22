@@ -87,3 +87,33 @@ jobs:
       #   with:
       #     name: my-app-build # Choose a name for your artifact
       #     path: path/to/your/build/directory # Specify the directory containing your build artifacts
+
+      
+      - name: Install Snyk
+        run: npm install -g snyk
+        # uses: snyk/actions/node@master
+        
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Test and Monitor Dependencies
+        run: snyk test
+        continue-on-error: true
+      - name: Test and Monitor Dependencies
+        run: snyk test --json > snyk-report.json || true
+      - name: Install snyk-to-html
+        run: npm install -g snyk-to-html
+
+      - name: Convert JSON report to HTML
+        run: snyk-to-html -i snyk-report.json -o snyk-report.html
+        env:
+          PATH: ${{ github.workspace }}/node_modules/.bin:$PATH
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-report
+          path: snyk-report.html
+      - name: Fix vulnerabilities
+        run: npx snyk wizard --fail-on patchable
