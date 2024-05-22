@@ -2,10 +2,17 @@
 const fs = require('fs');
 const path = require('path');
 
-const inputFilePath = path.resolve(__dirname, 'dependency-results.sbom.json');
+const inputFilePath = path.resolve(__dirname, 'trivy-results.json');
 const outputFilePath = path.resolve(__dirname, 'trivy-report.html');
 
 const trivyJson = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
+
+if (!trivyJson.Results || !Array.isArray(trivyJson.Results) || trivyJson.Results.length === 0) {
+  console.error('No results found in Trivy JSON report.');
+  process.exit(1);
+}
+
+const vulnerabilities = trivyJson.Results[0].Vulnerabilities || [];
 
 const htmlContent = `
 <!DOCTYPE html>
@@ -28,7 +35,7 @@ const htmlContent = `
       <th>Severity</th>
       <th>Description</th>
     </tr>
-    ${trivyJson.Results[0].Vulnerabilities.map(vuln => `
+    ${vulnerabilities.map(vuln => `
       <tr>
         <td>${vuln.VulnerabilityID}</td>
         <td>${vuln.PkgName}</td>
