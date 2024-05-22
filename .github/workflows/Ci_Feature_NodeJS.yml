@@ -90,8 +90,8 @@ jobs:
 
       
       - name: Install Snyk
-        run: npm install -g snyk
-        # uses: snyk/actions/node@master
+        # run: npm install -g snyk
+        uses: snyk/actions/node@master
         
 
       - name: Authenticate Snyk
