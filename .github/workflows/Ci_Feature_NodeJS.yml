@@ -89,22 +89,22 @@ jobs:
       #     path: path/to/your/build/directory # Specify the directory containing your build artifacts
 
       
-      # - name: Install Snyk
-      #   # run: npm install -g snyk
-      #   uses: snyk/actions/node@master
+      - name: Install Snyk
+        run: npm install -g snyk
+        # uses: snyk/actions/node@master
         
 
-      # - name: Authenticate Snyk
-      #   run: snyk auth ${{ secrets.SNYK_TOKEN }}
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
 
-      # - name: Test and Monitor Dependencies
-      #   run: snyk test
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: test
+      - name: Test and Monitor Dependencies
+        run: snyk test
+      # - name: Run Snyk to check for vulnerabilities
+      #   uses: snyk/actions/node@master
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #   with:
+      #     args: test
         continue-on-error: true
       - name: Test and Monitor Dependencies
         run: snyk test --json > snyk-report.json || true
