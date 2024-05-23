@@ -33,8 +33,6 @@ jobs:
          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
          restore-keys: | 
           ${{ runner.os }}-node-
-
-
       #- name: Secret Scanning
         # Integrate with your secret scanning tool
         # For example, if using truffleHog
@@ -143,24 +141,9 @@ jobs:
           image-ref: '.'
           github-pat: ${{ secrets.GH_TOKEN }}
  
-      # - name: Create coverage artifact
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: trivy result
-      #     path: dependency-results.sbom.json
-      - name: Convert Trivy JSON report to HTML
-        run: node convert-trivy-report.js
-
-      - name: Upload Trivy HTML report
-        uses: actions/upload-artifact@v2
-        with:
-         name: trivy-html-report
-         path: trivy-report.html
-
       - name: Create coverage artifact
         uses: actions/upload-artifact@v2
         with:
-         name: trivy-result
-         path: dependency-results.sbom.json
+          name: trivy result
+          path: dependency-results.sbom.json
           
-        
