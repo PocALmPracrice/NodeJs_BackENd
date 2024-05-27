@@ -155,4 +155,42 @@ jobs:
         with:
           name: trivy result
           path: dependency-results.sbom.json
- 
+   jfrog:
+    runs-on: ubuntu-latest
+
+    env:
+      JF_URL: ${{ secrets.JF_URL }}
+      JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v3
+
+      - name: Setup Node npm
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'  # Specify the Node.js version you need
+
+      - name: Set CLI Config
+        run: jf npm-config --global=true --repo-resolve=myshadab-npm --repo-deploy=myshadab-npm
+
+      - name: Install Deps
+        run: jf npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Publish
+        run: jf npm publish
+
+      - name: Publish Build info With JFrog CLI
+        run: |
+          # Collect environment variables for the build
+          jf rt build-collect-env
+          # Collect VCS details from git and add them to the build
+          jf rt build-add-git
+          # Publish build info
+          jf rt build-publish
