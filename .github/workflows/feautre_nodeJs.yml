@@ -1,4 +1,4 @@
-name: CI_NodeJS_BackEnd
+name: CI_NodeJS_BackEnd_Check
 
 on:
   push:
