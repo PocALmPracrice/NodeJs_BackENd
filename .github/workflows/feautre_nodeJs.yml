@@ -6,38 +6,25 @@ on:
       - feature_branch
 
 jobs:
-  checkout:
-    name: Checkout Repository
+   ci:
+    name: CI for NodeJS
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-  setup-node:
-    name: Set up Node.js
-    runs-on: ubuntu-latest
-    needs: checkout
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '20.12.2'
+          
       - name: Install dependencies
         run: npm install
 
-  build:
-    name: Build Project
-    runs-on: ubuntu-latest
-    needs: setup-node
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-      - name: Build
+      - name: Build Project
         run: npm run dev
 
-  cache-dependencies:
+   cache-dependencies:
     name: Cache Dependencies
     runs-on: ubuntu-latest
     needs: setup-node
@@ -52,7 +39,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
-  static-code-analysis:
+   static-code-analysis:
     name: Static Code Analysis
     runs-on: ubuntu-latest
     needs: build
@@ -72,7 +59,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONARCLOUDSECRET_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONARCLOUD_URL }}
 
-  notify-success:
+   notify-success:
     name: Send Slack Notification - Success
     runs-on: ubuntu-latest
     needs: static-code-analysis
@@ -88,7 +75,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
 
-  notify-failure:
+   notify-failure:
     name: Send Slack Notification - Failure
     runs-on: ubuntu-latest
     needs: static-code-analysis
@@ -104,7 +91,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
 
-  snyk:
+   snyk:
     name: Snyk Security Check
     runs-on: ubuntu-latest
     needs: build
@@ -134,7 +121,7 @@ jobs:
       - name: Fix vulnerabilities
         run: npx snyk wizard --fail-on patchable
 
-  trivy-scan:
+   trivy-scan:
     name: Trivy Vulnerability Scan
     runs-on: ubuntu-latest
     needs: build
