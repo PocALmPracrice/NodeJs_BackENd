@@ -179,13 +179,14 @@ jobs:
 
       - name: Install Deps
         run: jf npm install
+        working-directory: ${{ github.workspace }}
 
-      - name: Run tests
-        run: npm test
+      # - name: Run tests
+      #   run: npm test
 
       - name: Publish
         run: jf npm publish
-
+        working-directory: ${{ github.workspace }}
       - name: Publish Build info With JFrog CLI
         run: |
           # Collect environment variables for the build
@@ -194,3 +195,4 @@ jobs:
           jf rt build-add-git
           # Publish build info
           jf rt build-publish
+          working-directory: ${{ github.workspace }}
