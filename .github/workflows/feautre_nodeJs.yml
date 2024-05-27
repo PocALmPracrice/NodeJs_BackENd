@@ -112,8 +112,8 @@ jobs:
       - name: Verify snyk-to-html installation
         run: npm list -g --depth=0
 
-      - name: Add npm global bin to PATH
-        run: echo "::add-path::$(npm bin -g)"
+      # - name: Add npm global bin to PATH
+      #   run: echo "::add-path::$(npm bin -g)"
       - name: Convert JSON report to HTML
         run: snyk-to-html -i snyk-report.json -o snyk-report.html
         env:
