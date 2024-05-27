@@ -109,11 +109,10 @@ jobs:
         run: snyk test --json > snyk-report.json || true
       - name: Install snyk-to-html
         run: npm install -g snyk-to-html
-      - name: Verify snyk-to-html installation
-        run: npm list -g --depth=0
-
+     
       - name: Add npm global bin to PATH
-        run: echo "::add-path::$(npm bin -g)"
+        run: echo "$(npm bin -g)" >> $GITHUB_PATH
+
       - name: Convert JSON report to HTML
         run: snyk-to-html -i snyk-report.json -o snyk-report.html
         env:
