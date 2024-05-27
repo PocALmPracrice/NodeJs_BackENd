@@ -98,32 +98,32 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+
       - name: Install Snyk
         run: npm install -g snyk
+
       - name: Authenticate Snyk
         run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
       - name: Test and Monitor Dependencies
         run: snyk test
         continue-on-error: true
+
       - name: Generate Snyk Report
         run: snyk test --json > snyk-report.json || true
-      - name: Install snyk-to-html
-        run: npm install -g snyk-to-html
 
-      - name: Verify snyk-to-html installation
-        run: npm list -g --depth=0
-      - name: Add npm global bin to PATH
-        run: echo "$(npm bin -g)" >> $GITHUB_PATH
+      - name: Install snyk-to-html
+        run: npm install snyk-to-html
 
       - name: Convert JSON report to HTML
-        run: snyk-to-html -i snyk-report.json -o snyk-report.html
-        env:
-          PATH: ${{ github.workspace }}/node_modules/.bin:$PATH
+        run: $(npm bin)/snyk-to-html -i snyk-report.json -o snyk-report.html
+
       - name: Upload HTML report
         uses: actions/upload-artifact@v3
         with:
           name: snyk-report
           path: snyk-report.html
+
       - name: Fix vulnerabilities
         run: npx snyk wizard --fail-on patchable
 
