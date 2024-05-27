@@ -1,0 +1,149 @@
+name: CI_NodeJS_BackEnd
+ 
+on:
+  push:
+    branches:
+      - feature_branch
+
+jobs:
+  build:
+    name: CI for NodeJS
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.12.2'
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run dev & # Replace this with your build command/script
+        # Note the use of & to run the command in the background. This will allow the workflow to continue executing subsequent steps.
+ # If you only need to run the server temporarily for the purpose of testing or building assets, you can modify your build script to start the server in the background and then proceed with subsequent steps.
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+         path: ~/.npm # or wherever your dependencies are stored
+         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+         restore-keys: | 
+          ${{ runner.os }}-node-
+      #- name: Secret Scanning
+        # Integrate with your secret scanning tool
+        # For example, if using truffleHog
+        # run: trufflehog .
+
+      # - name: Unit Test
+      #   run: npm test -v ./...
+
+      # - name: Code Coverage
+      #   run: |
+          
+      - name: Static Code Analysis
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: .
+          args: >
+           -Dsonar.organization=pocalmpracrice
+           -Dsonar.projectKey=PocALmPracrice_NodeJs_BackENd
+           -Dsonar.sources=.
+           -Dsonar.host.url=https://sonarcloud.io
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARCLOUDSECRET_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARCLOUD_URL }}
+
+      - name: Send notification on Slack using Webhooks - Success
+        if: ${{ success() }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Node Js backend project built successfully."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
+
+      - name: Send notification on Slack using Webhooks - Failure
+        if: ${{ failure() }}
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Node backend(server) build failed. Please check the build logs for details."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
+
+     # Upload the build artifact
+      # - name: Upload artifact
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: my-app-build # Choose a name for your artifact
+      #     path: path/to/your/build/directory # Specify the directory containing your build artifacts
+
+      
+      - name: Install Snyk
+        run: npm install -g snyk
+        # uses: snyk/actions/node@master
+        
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Test and Monitor Dependencies
+        run: snyk test
+      # - name: Run Snyk to check for vulnerabilities
+      #   uses: snyk/actions/node@master
+      #   env:
+      #     SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #   with:
+      #     args: test
+        continue-on-error: true
+      - name: Test and Monitor Dependencies
+        run: snyk test --json > snyk-report.json || true
+      - name: Install snyk-to-html
+        run: npm install -g snyk-to-html
+
+      - name: Convert JSON report to HTML
+        run: snyk-to-html -i snyk-report.json -o snyk-report.html
+        env:
+          PATH: ${{ github.workspace }}/node_modules/.bin:$PATH
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-report
+          path: snyk-report.html
+      - name: Fix vulnerabilities
+        run: npx snyk wizard --fail-on patchable
+        
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+           scan-type: 'fs'
+           ignore-unfixed: true
+           format: 'sarif'
+           output: 'trivy-results.sarif'
+           severity: 'CRITICAL'
+
+ 
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          github-pat: ${{ secrets.GH_TOKEN }}
+ 
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: trivy result
+          path: dependency-results.sbom.json
+          

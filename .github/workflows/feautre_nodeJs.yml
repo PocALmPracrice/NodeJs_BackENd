@@ -1,0 +1,198 @@
+name: CI_NodeJS_BackEnd
+
+on:
+  push:
+    branches:
+      - feature_branch
+
+jobs:
+   ci:
+    name: CI for NodeJS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.12.2'
+          
+      - name: Install dependencies
+        run: npm install
+
+      # - name: Build Project
+      #   run: npm run dev
+
+   cache-dependencies:
+    name: Cache Dependencies
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+   static-code-analysis:
+    name: Static Code Analysis
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Static Code Analysis
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: .
+          args: >
+            -Dsonar.organization=pocalmpracrice
+            -Dsonar.projectKey=PocALmPracrice_NodeJs_BackENd
+            -Dsonar.sources=.
+            -Dsonar.host.url=https://sonarcloud.io
+        env:
+          SONAR_TOKEN: ${{ secrets.SONARCLOUDSECRET_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONARCLOUD_URL }}
+
+   notify-success:
+    name: Send Slack Notification - Success
+    runs-on: ubuntu-latest
+    needs: static-code-analysis
+    if: ${{ success() }}
+    steps:
+      - name: Send notification on Slack using Webhooks - Success
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Node Js backend project built successfully."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
+
+   notify-failure:
+    name: Send Slack Notification - Failure
+    runs-on: ubuntu-latest
+    needs: static-code-analysis
+    if: ${{ failure() }}
+    steps:
+      - name: Send notification on Slack using Webhooks - Failure
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "Node backend(server) build failed. Please check the build logs for details."
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TOKEN }}
+
+   snyk:
+    name: Snyk Security Check
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install Snyk
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
+
+      - name: Test and Monitor Dependencies
+        run: snyk test
+        continue-on-error: true
+
+      - name: Generate Snyk Report
+        run: snyk test --json > snyk-report.json || true
+
+      - name: Install snyk-to-html
+        run: npm install snyk-to-html
+
+      - name: Convert JSON report to HTML
+        run: ./node_modules/.bin/snyk-to-html -i snyk-report.json -o snyk-report.html
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-report
+          path: snyk-report.html
+
+      - name: Fix vulnerabilities
+        run: npx snyk wizard --fail-on patchable
+
+   trivy-scan:
+    name: Trivy Vulnerability Scan
+    runs-on: ubuntu-latest
+    needs: ci
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL'
+      - name: Run Trivy in GitHub SBOM mode and submit results to Dependency Graph
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'github'
+          output: 'dependency-results.sbom.json'
+          image-ref: '.'
+          github-pat: ${{ secrets.GH_TOKEN }}
+      - name: Upload Trivy SBOM
+        uses: actions/upload-artifact@v2
+        with:
+          name: trivy result
+          path: dependency-results.sbom.json
+   jfrog:
+    runs-on: ubuntu-latest
+    needs: ci
+    env:
+      JF_URL: ${{ secrets.JF_URL }}
+      JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v3
+
+      # - name: Setup Node npm
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: '14'  # Specify the Node.js version you need
+
+      - name: Set CLI Config
+        run: jf npm-config --global=true --repo-resolve=myshadab-npm --repo-deploy=myshadab-npm
+
+      - name: Install Deps
+        run: jf npm install
+        working-directory: ${{ github.workspace }}
+
+      # - name: Run tests
+      #   run: npm test
+
+      - name: Publish
+        run: jf npm publish
+        working-directory: ${{ github.workspace }}
+      - name: Publish Build info With JFrog CLI
+        run: |
+          # Collect environment variables for the build
+          jf rt build-collect-env
+          # Collect VCS details from git and add them to the build
+          jf rt build-add-git
+          # Publish build info
+          jf rt build-publish
+        working-directory: ${{ github.workspace }}
