@@ -3,7 +3,7 @@ version: 2.1
 executors:
   machine-executor:
     machine:
-      image: ubuntu-2004:202101-01  # You can specify different Ubuntu versions or machine images
+      image: ubuntu-2004:202101-01  # You can change the machine image if needed
     working_directory: ~/repo
 
 jobs:
