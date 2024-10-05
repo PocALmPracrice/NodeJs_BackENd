@@ -1,20 +1,14 @@
 version: 2.1
 
-executors:
-  machine-executor:
-    machine:
-      image: ubuntu-2004:202101-01  # You can change the machine image if needed
-    working_directory: ~/repo
-
 jobs:
   build:
-    executor: machine-executor
+    machine: true  # Use default machine executor (Ubuntu 20.04)
     steps:
       - checkout
       - run:
           name: Install Node.js
           command: |
-            curl -sL https://deb.nodesource.com/setup_20.12.2 | sudo -E bash -
+            curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
             sudo apt-get install -y nodejs
       - run:
           name: Install Dependencies
