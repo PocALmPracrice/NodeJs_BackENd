@@ -1,16 +1,21 @@
 version: 2.1
 
 executors:
-  node-executor:
-    docker:
-      - image: circleci/node:20  # Latest Node.js 20.x version
+  machine-executor:
+    machine:
+      image: ubuntu-2004:202101-01  # You can specify different Ubuntu versions or machine images
     working_directory: ~/repo
 
 jobs:
   build:
-    executor: node-executor
+    executor: machine-executor
     steps:
       - checkout
+      - run:
+          name: Install Node.js
+          command: |
+            curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+            sudo apt-get install -y nodejs
       - run:
           name: Install Dependencies
           command: npm install
