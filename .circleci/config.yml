@@ -3,7 +3,7 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: circleci/node:20.12  # Node.js version
+      - image: circleci/node:20  # Latest Node.js 20.x version
     working_directory: ~/repo
 
 jobs:
