@@ -15,7 +15,7 @@ jobs:
     steps:
       - run: echo "Say goodbye to YAML!"
       - store_artifacts:
-          path: sonar-project.properties
+          path: src/index.js
 workflows:
   # Name of workflow
   hello_and_goodbye:
