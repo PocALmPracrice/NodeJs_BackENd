@@ -1,4 +1,5 @@
- version: 2.1
+version: 2.1
+
 executors:
   node-executor:
     docker:
@@ -6,8 +7,9 @@ executors:
     working_directory: ~/repo
 
 jobs:
-   build:
-    machine: true  # Use default machine executor (Ubuntu 20.04)
+  build:
+    machine:
+      image: ubuntu-2004:202010-01  # Use specific Ubuntu 20.04 machine image
     steps:
       - checkout
       - run:
@@ -20,15 +22,13 @@ jobs:
           command: npm install
       - run:
           name: Build Project
-          command: npm run dev &  # Replace this with your actual build command
-
+          command: npm run dev  # Replace this with your actual build command
 
   sonarqube-analysis:
     docker:
       - image: sonarsource/sonar-scanner-cli:latest
     steps:
-      - attach_workspace:
-          at: ~/repo
+      - checkout
       - run:
           name: SonarQube analysis
           command: |
@@ -38,7 +38,7 @@ jobs:
               -Dsonar.host.url=https://sonarcloud.io \
               -Dsonar.login=$SONAR_GITHUBACTION 
       - store_artifacts:
-          path: ~/repo/.scannerwork
+          path: .scannerwork
           destination: sonarqube-results
 
 workflows:
