@@ -32,20 +32,22 @@ executors:
     working_directory: ~/repo
 
 jobs:
-  build:
-    executor: node-executor
+   build:
+    machine: true  # Use default machine executor (Ubuntu 20.04)
     steps:
       - checkout
       - run:
-          name: Install dependencies
+          name: Install Node.js
+          command: |
+            curl -sL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+            sudo apt-get install -y nodejs
+      - run:
+          name: Install Dependencies
           command: npm install
       - run:
-          name: Build project
-          command: npm run build
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
+          name: Build Project
+          command: npm run dev &  # Replace this with your actual build command
+
 
   sonarqube-analysis:
     docker:
