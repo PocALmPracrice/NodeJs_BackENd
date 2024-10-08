@@ -6,7 +6,7 @@ jobs:
   say_hello:
     docker:
      - image: cimg/base:2022.05
-       working_directory: /home/circleci/project
+       # working_directory: /home/circleci/project
     steps:
       - run: echo "Say hello to YAML!"
   # Job two with a unique name
@@ -15,6 +15,7 @@ jobs:
      - image: cimg/base:2022.05
     steps:
       - run: echo "Say goodbye to YAML!"
+      - run: mkdir -p src && echo "// index.js content" > src/index.js  # Create the file
       - store_artifacts:
           path: src/index.js
 workflows:
